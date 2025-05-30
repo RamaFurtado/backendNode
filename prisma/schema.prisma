@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"  
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id          Int                 @id @default(autoincrement())
+  nombre      String
+  email       String              @unique
+  password    String
+  dni         String?
+  direccionId Int?
+  rol         Rol                 @default(USUARIO)
+  activo      Boolean             @default(true)
+  fechaCreacion DateTime          @default(now())
+  fechaActualizacion DateTime     @updatedAt
+
+  direcciones UsuarioDireccion[]
+  ordenes     OrdenCompra[]
+}
+
+model Producto {
+  id          Int           @id @default(autoincrement())
+  nombre      String
+  sexo        Sexo?
+  tipoProducto String
+  categoriaId Int?
+  activo      Boolean       @default(true)
+  fechaCreacion DateTime    @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  categoria   Categoria?    @relation(fields: [categoriaId], references: [id])
+  detalles    Detalle[]
+}
+
+model Categoria {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  activo      Boolean   @default(true)
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  productos   Producto[]
+}
+
+model OrdenCompra {
+  id          Int                  @id @default(autoincrement())
+  fecha       DateTime
+  total       Int
+  usuarioId   Int?
+  activo      Boolean              @default(true)
+  fechaCreacion DateTime           @default(now())
+  fechaActualizacion DateTime      @updatedAt
+
+  usuario     Usuario?             @relation(fields: [usuarioId], references: [id])
+  detalles    OrdenCompraDetalle[]
+}
+
+model Descuento {
+  id          Int                @id @default(autoincrement())
+  porcentaje  Float
+  descripcion String?
+  fechaInicio DateTime
+  fechaFinal  DateTime
+  activo      Boolean            @default(true)
+  fechaCreacion DateTime         @default(now())
+  fechaActualizacion DateTime    @updatedAt
+
+  precios     PrecioDescuento[]
+}
+
+model Detalle {
+  id          Int              @id @default(autoincrement())
+  estado      Boolean?
+  color       String?
+  marca       String?
+  stock       Int
+  productoId  Int?
+  precioId    Int?
+  talleId     Int?
+  activo      Boolean          @default(true)
+  fechaCreacion DateTime       @default(now())
+  fechaActualizacion DateTime  @updatedAt
+
+  producto    Producto?        @relation(fields: [productoId], references: [id])
+  precio      Precio?          @relation(fields: [precioId], references: [id])
+  talle       Talles?          @relation(fields: [talleId], references: [id])
+  imagenes    DetalleImagen[]
+  ordenDetalles OrdenCompraDetalle[]
+  preciosDescuento PrecioDescuento[]
+}
+
+model DetalleImagen {
+  id          Int       @id @default(autoincrement())
+  detalleId   Int?
+  imagenId    Int?
+  activo      Boolean   @default(true)
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  detalle     Detalle?  @relation(fields: [detalleId], references: [id])
+  imagen      Imagen?   @relation(fields: [imagenId], references: [id])
+}
+
+model Direccion {
+  id          Int                  @id @default(autoincrement())
+  calle       String?
+  numero      String?
+  ciudad      String?
+  provincia   String?
+  pais        String?
+  codigoPostal String?
+  localidad   String?
+  usuarioId   Int?
+  activo      Boolean              @default(true)
+  fechaCreacion DateTime           @default(now())
+  fechaActualizacion DateTime      @updatedAt
+
+  usuarios    UsuarioDireccion[]
+}
+
+model Imagen {
+  id          Int               @id @default(autoincrement())
+  url         String
+  activo      Boolean           @default(true)
+  fechaCreacion DateTime        @default(now())
+  fechaActualizacion DateTime   @updatedAt
+
+  detalles    DetalleImagen[]
+}
+
+model OrdenCompraDetalle {
+  id          Int          @id @default(autoincrement())
+  cantidad    Int
+  ordenId     Int?
+  detalleId   Int?
+  activo      Boolean      @default(true)
+  fechaCreacion DateTime   @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  ordenCompra OrdenCompra? @relation(fields: [ordenId], references: [id])
+  detalle     Detalle?     @relation(fields: [detalleId], references: [id])
+}
+
+model Precio {
+  id          Int                  @id @default(autoincrement())
+  precioCompra Float?
+  precioVenta  Float?
+  activo      Boolean              @default(true)
+  fechaCreacion DateTime           @default(now())
+  fechaActualizacion DateTime      @updatedAt
+
+  detalles    Detalle[]
+  preciosDescuento PrecioDescuento[]
+}
+
+model PrecioDescuento {
+  id          Int          @id @default(autoincrement())
+  precioFinal Float
+  detalleId   Int?
+  descuentoId Int?
+  precioId    Int?
+  activo      Boolean     @default(true)
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  detalle     Detalle?    @relation(fields: [detalleId], references: [id])
+  descuento   Descuento?  @relation(fields: [descuentoId], references: [id])
+  precio      Precio?     @relation(fields: [precioId], references: [id])
+}
+
+model Talles {
+  id          Int       @id @default(autoincrement())
+  talle       String    @unique
+  activo      Boolean   @default(true)
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  detalles    Detalle[]
+}
+
+model UsuarioDireccion {
+  id          Int       @id @default(autoincrement())
+  usuarioId   Int?
+  direccionId Int?
+  activo      Boolean   @default(true)
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  usuario     Usuario?   @relation(fields: [usuarioId], references: [id])
+  direccion   Direccion? @relation(fields: [direccionId], references: [id])
+}
+
+
+// Enums
+
+enum Rol {
+  USUARIO
+  ADMIN
+}
+
+enum Sexo {
+  MASCULINO
+  FEMENINO
+  UNISEX
+}
+enum TipoProducto {
+  REMERA
+  SHORT
+  ZAPATILLA
+  ACCESORIO
+}
