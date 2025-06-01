@@ -6,10 +6,12 @@ import { validate } from '../middlewares/validate.middleware';
 import { 
   authenticateToken, 
   requireAdmin, 
-  requireUser,
   optionalAuth 
 } from '../middlewares/auth.middleware';
 import { ProductoRequestSchema } from '../dtos/ProductoRequestDTO';
+
+import upload from '../middlewares/upload.middleware'; // Middleware para manejar la subida de imágenes
+import { uploadImage } from '../lib/cloudinaryUploader';
 
 const prisma = new PrismaClient();
 const controller = new ProductoController(prisma);
@@ -27,9 +29,8 @@ const asyncHandler = (fn: (req: Request, res: Response) => Promise<any>) => {
 
 // ============= RUTAS PÚBLICAS =============
 
-// Ver todos los productos (público, pero con info de usuario si está autenticado)
 router.get('/', 
-  optionalAuth, // Token opcional
+  optionalAuth, 
   asyncHandler(async (req: Request, res: Response) => {
     // Aquí podrías mostrar diferentes productos según si está autenticado
     await controller.getAll(req, res);
@@ -44,19 +45,36 @@ router.get('/:id',
   })
 );
 
-// ============= RUTAS PROTEGIDAS - SOLO USUARIOS AUTENTICADOS =============
 
 // ============= RUTAS ADMINISTRATIVAS - SOLO ADMIN =============
 
 // Crear producto (solo admin)
-router.post('/', 
-  authenticateToken,      // Debe estar autenticado
-  requireAdmin,           // Debe ser admin
-  validate(ProductoRequestSchema), 
+router.post(
+  '/',
+  authenticateToken,
+  requireAdmin,
+  upload.array('imagenes'), // ← esto está bien
   asyncHandler(async (req: Request, res: Response) => {
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'Debes subir al menos una imagen' });
+    }
+
+    // Subir imágenes a Cloudinary
+    const imagenesUrls: string[] = await Promise.all(
+      files.map(file => uploadImage(file.buffer, 'productos'))
+    );
+
+    // Adjuntar al body para que el controller las reciba
+    req.body.imagenesUrls = imagenesUrls;
+
+    // Llamar al controlador
     await controller.create(req, res);
   })
 );
+
+
 
 // Actualizar producto (solo admin)
 router.put('/:id', 
@@ -68,15 +86,6 @@ router.put('/:id',
   })
 );
 
-// Actualización parcial (solo admin)
-router.patch('/:id', 
-  authenticateToken,
-  requireAdmin,
-  // validate(ProductoUpdateSchema), // Si tienes schema parcial
-  asyncHandler(async (req: Request, res: Response) => {
-    await controller.update(req, res);
-  })
-);
 
 // Eliminar producto (solo admin)
 router.delete('/:id', 
@@ -87,58 +96,5 @@ router.delete('/:id',
   })
 );
 
-// ============= RUTAS ESPECÍFICAS CON LÓGICA CONDICIONAL =============
-
-// Ejemplo: Crear reseña de producto (solo usuarios autenticados)
-router.post('/:id/reviews', 
-  authenticateToken,
-  requireUser, // Admin o Usuario normal
-  asyncHandler(async (req: Request, res: Response) => {
-    // Aquí podrías crear una reseña
-    // req.usuario contiene la info del usuario autenticado
-    const productoId = parseInt(req.params.id);
-    const usuarioId = req.usuario!.id;
-    
-    res.json({
-      message: 'Reseña creada',
-      productoId,
-      usuarioId,
-      usuario: req.usuario
-    });
-  })
-);
-
-// Ejemplo: Agregar a favoritos (solo usuarios autenticados)
-router.post('/:id/favorite', 
-  authenticateToken,
-  requireUser,
-  asyncHandler(async (req: Request, res: Response) => {
-    const productoId = parseInt(req.params.id);
-    const usuarioId = req.usuario!.id;
-    
-    // Lógica para agregar a favoritos
-    res.json({
-      message: 'Producto agregado a favoritos',
-      productoId,
-      usuarioId
-    });
-  })
-);
-
-// Ejemplo: Ver estadísticas de producto (solo admin)
-router.get('/:id/stats', 
-  authenticateToken,
-  requireAdmin,
-  asyncHandler(async (req: Request, res: Response) => {
-    const productoId = parseInt(req.params.id);
-    
-    // Lógica para obtener estadísticas
-    res.json({
-      message: 'Estadísticas del producto',
-      productoId,
-      // ... estadísticas
-    });
-  })
-);
 
 export default router;

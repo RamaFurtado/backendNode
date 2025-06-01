@@ -2,6 +2,10 @@ import express from 'express';
 import appRouter from './routes/app.router';
 import authRoutes from './routes/auth.routes';
 import productosRoutes from './routes/producto.routes';
+import 'dotenv/config'; 
+import './lib/cloudinary';  
+
+
 
 const app = express();
 

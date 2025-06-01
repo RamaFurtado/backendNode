@@ -5,18 +5,18 @@ import { Sexo, TipoProducto, Rol } from '@prisma/client';
 const TipoProductoEnum = z.enum(['REMERA', 'SHORT', 'ZAPATILLA', 'ACCESORIO']);
 
 export const ProductoRequestSchema = z.object({
-  nombre: z.string().min(1, { message: "El nombre no debe estar vacío" }),
-  sexo: z.nativeEnum(Sexo, { errorMap: () => ({ message: "El sexo no debe ser nulo" }) }).optional(),
-  tipoProducto: z.string().min(1, { message: "El tipo de producto no debe estar vacío" }),
-  categoriaNombre: z.string().min(1, { message: "La categoría no debe ser nula" }),
-  talle: z.string().min(1, { message: "El talle no debe ser nulo" }),
-  color: z.string().min(1, { message: "El color no debe estar vacío" }),
-  marca: z.string().min(1, { message: "La marca no debe estar vacía" }),
-  stock: z.number().int().min(0, { message: "El stock no puede ser negativo" }),
-  estado: z.boolean().optional().default(true),
-  precioCompra: z.number().positive({ message: "El precio de compra debe ser positivo" }).optional(),
-  precioVenta: z.number().positive({ message: "El precio de venta debe ser positivo" }).optional(),
-  imagenesUrls: z.array(z.string().url()).min(1, { message: "Debe haber al menos una imagen" }),
+  nombre: z.string().min(1),
+  sexo: z.nativeEnum(Sexo).optional(),
+  tipoProducto: z.string().min(1),
+  categoriaNombre: z.string().min(1),
+  talle: z.string().min(1),
+  color: z.string().min(1),
+  marca: z.string().min(1),
+  stock: z.coerce.number().int().min(0),
+  estado: z.coerce.boolean().optional().default(true),
+  precioCompra: z.coerce.number().positive().optional(),
+  precioVenta: z.coerce.number().positive().optional(),
+  imagenesUrls: z.array(z.string().url()).min(1)
 });
 export const ProductoUpdateSchema = ProductoRequestSchema.partial();
 

@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Rol } from '@prisma/client';
 import { UsuarioService } from '../services/usuario.service';
 import { LoginRequestDTO } from '../dtos/LoginRequest';
 import { UsuarioRegistroDTO } from '../dtos/UsuarioRegistroDTO';
 import { CreateUsuarioInput } from '../dtos/UsuarioDTO';
+
 
 export class AuthController {
   private usuarioService: UsuarioService;
@@ -72,7 +73,8 @@ export class AuthController {
         nombre: data.nombre,
         email: data.email,
         password: data.password,
-        dni: data.dni
+        dni: data.dni,
+        rol: data.rol || Rol.USUARIO
       });
 
       // No devolver la contraseña
