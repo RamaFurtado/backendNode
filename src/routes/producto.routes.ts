@@ -1,23 +1,22 @@
-// producto.routes.ts - ACTUALIZADO con autenticación
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ProductoController } from '../controllers/ProductoController';
 import { validate } from '../middlewares/validate.middleware';
-import { 
-  authenticateToken, 
-  requireAdmin, 
-  optionalAuth 
+import {
+  authenticateToken,
+  requireAdmin,
+  optionalAuth
 } from '../middlewares/auth.middleware';
-import { ProductoRequestSchema } from '../dtos/ProductoRequestDTO';
+import { ProductoRequestSchema, ProductoUpdateSchema } from '../dtos/ProductoRequestDTO';
 
-import upload from '../middlewares/upload.middleware'; // Middleware para manejar la subida de imágenes
+import upload from '../middlewares/upload.middleware'; 
 import { uploadImage } from '../lib/cloudinaryUploader';
 
 const prisma = new PrismaClient();
 const controller = new ProductoController(prisma);
 const router = Router();
 
-// Helper para async handlers
+
 const asyncHandler = (fn: (req: Request, res: Response) => Promise<any>) => {
   return (req: Request, res: Response) => {
     Promise.resolve(fn(req, res)).catch((error) => {
@@ -29,31 +28,30 @@ const asyncHandler = (fn: (req: Request, res: Response) => Promise<any>) => {
 
 // ============= RUTAS PÚBLICAS =============
 
-router.get('/', 
-  optionalAuth, 
+router.get('/',
+  optionalAuth,
   asyncHandler(async (req: Request, res: Response) => {
-    // Aquí podrías mostrar diferentes productos según si está autenticado
+   
     await controller.getAll(req, res);
   })
 );
 
-// Ver producto específico (público)
-router.get('/:id', 
+// Ver producto específico
+router.get('/:id',
   optionalAuth,
   asyncHandler(async (req: Request, res: Response) => {
     await controller.getById(req, res);
   })
 );
 
-
 // ============= RUTAS ADMINISTRATIVAS - SOLO ADMIN =============
 
-// Crear producto (solo admin)
+// Crear producto 
 router.post(
   '/',
   authenticateToken,
   requireAdmin,
-  upload.array('imagenes'), // ← esto está bien
+  upload.array('imagenes'),
   asyncHandler(async (req: Request, res: Response) => {
     const files = req.files as Express.Multer.File[];
 
@@ -66,35 +64,30 @@ router.post(
       files.map(file => uploadImage(file.buffer, 'productos'))
     );
 
-    // Adjuntar al body para que el controller las reciba
+   
     req.body.imagenesUrls = imagenesUrls;
-
-    // Llamar al controlador
+    
     await controller.create(req, res);
   })
 );
 
-
-
-// Actualizar producto (solo admin)
-router.put('/:id', 
+// Actualizar producto 
+router.put('/:id',
   authenticateToken,
   requireAdmin,
-  validate(ProductoRequestSchema), 
+  upload.array('imagenes'), 
   asyncHandler(async (req: Request, res: Response) => {
     await controller.update(req, res);
   })
 );
 
-
-// Eliminar producto (solo admin)
-router.delete('/:id', 
+// Eliminar producto 
+router.delete('/:id',
   authenticateToken,
   requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     await controller.delete(req, res);
   })
 );
-
 
 export default router;

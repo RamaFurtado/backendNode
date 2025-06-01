@@ -1,6 +1,6 @@
-import 'dotenv/config'; // 🔁 Esto debe ir primero de todo
-import './lib/cloudinary'; // Luego se configura Cloudinary
-import app from './app'; // Por último se importa app
+import 'dotenv/config'; 
+import './lib/cloudinary'; 
+import app from './app';
 
 const PORT = process.env.PORT || 3000;
 

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Rol } from '@prisma/client';
 
-// Extender el tipo Request para incluir usuario
+
 declare global {
   namespace Express {
     interface Request {
@@ -107,7 +107,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction): v
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    next(); // Continúa sin usuario
+    next(); 
     return;
   }
 
@@ -123,43 +123,32 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction): v
       rol: decoded.rol
     };
   } catch (error) {
-    // Si el token es inválido, simplemente continúa sin usuario
+   
     console.warn('Token opcional inválido:', error);
   }
 
   next();
 };
 
-// Middleware para verificar que el usuario esté activo
-export const requireActiveUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  if (!req.usuario) {
-    res.status(401).json({ 
+
+export const requireSelfOrAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  const usuario = req.usuario;
+
+  if (!usuario) {
+    res.status(401).json({
       error: 'Usuario no autenticado',
-      message: 'Debe estar autenticado para acceder a este recurso' 
+      message: 'Debe estar autenticado para acceder a este recurso'
     });
     return;
   }
-
-  try {
-    // Aquí podrías verificar en la DB si el usuario sigue activo
-    // const { prisma } = require('../lib/prisma');
-    // const usuario = await prisma.usuario.findUnique({
-    //   where: { id: req.usuario.id }
-    // });
-    // 
-    // if (!usuario || !usuario.activo) {
-    //   return res.status(403).json({ 
-    //     error: 'Usuario desactivado',
-    //     message: 'Su cuenta ha sido desactivada' 
-    //   });
-    // }
-
+  if (usuario.rol === Rol.ADMIN || usuario.id === Number(req.params.id)) {
     next();
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Error interno del servidor',
-      message: 'Error al verificar el estado del usuario' 
-    });
     return;
   }
+
+  res.status(403).json({
+    error: 'Acceso denegado',
+    message: 'No tiene permiso para realizar esta acción'
+  });
 };
+

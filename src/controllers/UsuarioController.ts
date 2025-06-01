@@ -12,12 +12,12 @@ export class UsuarioController extends BaseController<Usuario, CreateUsuarioInpu
       ...usuarioServiceInstance,
       
       async create(data: CreateUsuarioInput) {
-        console.log('🎯 Controlador: iniciando create');
-        console.log('📥 Data recibida en controlador:', JSON.stringify(data, null, 2));
+        console.log(' Controlador: iniciando create');
+        console.log(' Data recibida en controlador:', JSON.stringify(data, null, 2));
         
         // Verificar si el usuario quiere agregar dirección
         if (data.direccion && Object.keys(data.direccion).length > 0) {
-          console.log('🏠 Usuario eligió agregar dirección - usando createWithDireccion');
+          console.log(' Usuario eligió agregar dirección - usando createWithDireccion');
           
           // Usar el método que maneja la tabla intermedia UsuarioDireccion
           return await usuarioServiceInstance.createWithDireccion({
@@ -29,7 +29,7 @@ export class UsuarioController extends BaseController<Usuario, CreateUsuarioInpu
             direccion: data.direccion
           });
         } else {
-          console.log('👤 Usuario NO agregó dirección - usando create simple');
+          console.log(' Usuario NO agregó dirección - usando create simple');
           
           // Crear usuario sin dirección
           return await usuarioServiceInstance.create({

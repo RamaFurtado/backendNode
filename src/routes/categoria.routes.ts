@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 const controller = new CategoriaController(prisma);
 const router = Router();
 
-// Rutas protegidas: solo ADMIN puede acceder
+// Rutas protegidas
 router.post('/',authenticateToken,requireAdmin, validate(CreateCategoriaSchema), controller.create.bind(controller));
 router.delete('/:id',authenticateToken,requireAdmin, controller.delete.bind(controller));
 router.put('/:id',authenticateToken,requireAdmin, validate(CreateCategoriaSchema), controller.update.bind(controller));

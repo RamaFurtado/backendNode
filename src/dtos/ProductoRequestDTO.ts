@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Sexo, TipoProducto, Rol } from '@prisma/client';
+import { Sexo, TipoProducto } from '@prisma/client';
 
 
 const TipoProductoEnum = z.enum(['REMERA', 'SHORT', 'ZAPATILLA', 'ACCESORIO']);

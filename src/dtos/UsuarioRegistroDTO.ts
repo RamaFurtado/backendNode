@@ -7,6 +7,5 @@ export const UsuarioRegistroSchema = z.object({
   password: z.string().min(1, { message: "La contraseña es obligatoria" }),
   dni: z.string().min(1, { message: "El DNI es obligatorio" }),
   rol: z.enum(["USUARIO", "ADMIN"]).default("USUARIO"),
-  // direccion?: se puede agregar opcionalmente luego si querés
 });
 export type UsuarioRegistroDTO = z.infer<typeof UsuarioRegistroSchema>;

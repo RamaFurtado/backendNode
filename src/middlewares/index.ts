@@ -4,7 +4,6 @@ export {
   requireAdmin,
   requireUser,
   optionalAuth,
-  requireActiveUser,
   JWTPayload
 } from './auth.middleware';
 

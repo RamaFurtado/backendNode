@@ -9,12 +9,12 @@ const prisma = new PrismaClient();
 const controller = new DescuentoController(prisma);
 const router = Router();
 
-// Protegidas: solo ADMIN puede acceder
+// Protegidas
 router.post('/', authenticateToken, requireAdmin, validate(CreateDescuentoSchema), controller.create.bind(controller));
 router.put('/:id', authenticateToken, requireAdmin, validate(CreateDescuentoSchema), controller.update.bind(controller));
 router.delete('/:id', authenticateToken, requireAdmin, controller.delete.bind(controller));
 
-// Públicas (o podés agregar authenticateToken si querés que solo usuarios logueados accedan)
+// Públicas
 router.get('/', controller.getAll.bind(controller));
 router.get('/:id', controller.getById.bind(controller));
 

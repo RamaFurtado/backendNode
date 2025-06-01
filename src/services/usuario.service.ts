@@ -9,7 +9,7 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
     super(prisma, prisma.usuario);
   }
 
-  // Crear usuario simple
+  
   async create(data: {
     nombre: string;
     email: string;
@@ -46,25 +46,25 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
       localidad?: string;
     };
   }): Promise<Usuario> {
-    console.log('🚀 Iniciando createWithDireccion');
-    console.log('📥 Data recibida:', JSON.stringify(data, null, 2));
+    console.log(' Iniciando createWithDireccion');
+    console.log(' Data recibida:', JSON.stringify(data, null, 2));
 
     try {
       const hashedPassword = await bcrypt.hash(data.password, 10);
-      console.log('🔐 Password hasheado');
+      console.log(' Password hasheado');
 
       return await prisma.$transaction(async (tx) => {
-        console.log('📦 Iniciando transacción');
+        console.log(' Iniciando transacción');
 
         // 1. Crear la dirección
-        console.log('🏠 Creando dirección...');
+        console.log(' Creando dirección...');
         const direccionCreada = await tx.direccion.create({
           data: data.direccion,
         });
-        console.log('✅ Dirección creada:', direccionCreada);
+        console.log(' Dirección creada:', direccionCreada);
 
         // 2. Crear el usuario
-        console.log('👤 Creando usuario...');
+        console.log(' Creando usuario...');
         const usuarioCreado = await tx.usuario.create({
           data: {
             nombre: data.nombre,
@@ -74,11 +74,11 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
             rol: (data.rol as Rol) ?? Rol.USUARIO,
           },
         });
-        console.log('✅ Usuario creado:', usuarioCreado);
+        console.log(' Usuario creado:', usuarioCreado);
 
         // 3. Crear relación en UsuarioDireccion
-        console.log('🔗 Creando relación...');
-        console.log('🔗 Datos para relación:', {
+        console.log(' Creando relación...');
+        console.log(' Datos para relación:', {
           usuarioId: usuarioCreado.id,
           direccionId: direccionCreada.id,
           activo: true
@@ -91,10 +91,10 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
             activo: true,
           },
         });
-        console.log('✅ Relación creada:', relacionCreada);
+        console.log(' Relación creada:', relacionCreada);
 
         // 4. Retornar el usuario con direcciones asociadas
-        console.log('🔍 Buscando usuario con relaciones...');
+        console.log(' Buscando usuario con relaciones...');
         const usuarioConDirecciones = await tx.usuario.findUnique({
           where: { id: usuarioCreado.id },
           include: {
@@ -106,7 +106,7 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
           },
         });
 
-        console.log('✅ Usuario final:', JSON.stringify(usuarioConDirecciones, null, 2));
+        console.log(' Usuario final:', JSON.stringify(usuarioConDirecciones, null, 2));
 
         if (!usuarioConDirecciones) {
           throw new Error('Error al recuperar el usuario creado');
@@ -115,7 +115,7 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
         return usuarioConDirecciones;
       });
     } catch (error) {
-      console.error('❌ Error en createWithDireccion:', error);
+      console.error(' Error en createWithDireccion:', error);
       throw error;
     }
   }
@@ -124,9 +124,25 @@ export class UsuarioService extends GenericService<Usuario, any, any> {
     return this.modelDelegate.findMany();
   }
 
-  async findById(id: number): Promise<Usuario | null> {
-    return this.modelDelegate.findUnique({ where: { id } });
+  async getById(id: number): Promise<Usuario> {
+  console.log(' Buscando usuario por ID:', id);
+  const usuario = await this.modelDelegate.findUnique({ 
+    where: { id },
+    include: {
+      direcciones: {
+        include: {
+          direccion: true
+        }
+      }
+    }
+  });
+  
+  if (!usuario) {
+    throw new Error('Usuario no encontrado');
   }
+  
+  return usuario;
+}
 
   async update(id: number, data: Partial<Usuario>): Promise<Usuario> {
     return this.modelDelegate.update({
@@ -226,7 +242,7 @@ async changePassword(id: number, currentPassword: string, newPassword: string): 
   });
 }
 
-// Resetear contraseña (para funcionalidad "Olvidé mi contraseña")
+// Resetear contraseña
 async resetPassword(email: string, newPassword: string): Promise<void> {
   const usuario = await this.modelDelegate.findUnique({ where: { email } });
   if (!usuario) throw new Error('Usuario no encontrado');
@@ -238,17 +254,7 @@ async resetPassword(email: string, newPassword: string): Promise<void> {
   });
 }
 
-// Actualizar último acceso
-async updateLastAccess(id: number): Promise<void> {
-  await this.modelDelegate.update({
-    where: { id },
-    data: { 
-      // Si tienes un campo lastLogin en tu modelo:
-      // lastLogin: new Date()
-      fechaActualizacion: new Date()
-    }
-  });
-}
+
 
 // Obtener usuarios por rol
 async findByRole(rol: Rol): Promise<Usuario[]> {
@@ -262,7 +268,7 @@ async findByRole(rol: Rol): Promise<Usuario[]> {
       rol: true,
       activo: true,
       fechaCreacion: true
-      // No incluir password
+     
     }
   });
 }

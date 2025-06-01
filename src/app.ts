@@ -5,8 +5,6 @@ import productosRoutes from './routes/producto.routes';
 import 'dotenv/config'; 
 import './lib/cloudinary';  
 
-
-
 const app = express();
 
 app.use(express.json());

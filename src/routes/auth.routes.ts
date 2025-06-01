@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 const controller = new AuthController(prisma);
 const router = Router();
 
-// Helper para manejar async handlers
+
 const asyncHandler = (fn: (req: Request, res: Response) => Promise<any>) => {
   return (req: Request, res: Response) => {
     Promise.resolve(fn(req, res)).catch((error) => {
@@ -75,7 +75,7 @@ router.post('/logout',
 
 // ============= RUTAS DE UTILIDAD =============
 
-// Verificar si token es válido (útil para frontend)
+// Verificar si token es válido
 router.get('/verify-token', 
   authenticateToken,
   (req: Request, res: Response) => {
@@ -86,7 +86,7 @@ router.get('/verify-token',
   }
 );
 
-// Obtener información pública (opcional auth)
+// Obtener información pública
 router.get('/public-info', 
   optionalAuth,
   (req: Request, res: Response) => {
