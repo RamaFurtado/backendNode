@@ -5,6 +5,7 @@ import productosRoutes from './routes/producto.routes';
 import 'dotenv/config'; 
 import './lib/cloudinary';  
 import usuarioDireccionRouter from  './routes/usuarioDireccion.routes';
+import descuentoRouter from './routes/descuento.routes';
 
 const app = express();
 
@@ -13,6 +14,8 @@ app.use('/api', appRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/usuario-direccion', usuarioDireccionRouter)
+app.use('/api/descuentos',descuentoRouter);
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
