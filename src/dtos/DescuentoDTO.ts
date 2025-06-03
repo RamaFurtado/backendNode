@@ -1,11 +1,25 @@
 import { z } from 'zod';
 
 export const CreateDescuentoSchema = z.object({
-  nombre: z.string().min(1, 'El nombre es obligatorio'),
   porcentaje: z.number().min(0).max(100, 'Porcentaje inválido'),
+  descripcion: z.string().optional(),
+  fechaInicio: z.string().refine((str) => {
+    // Validar formato YYYY/MM/DD o YYYY-MM-DD
+    const regex = /^\d{4}[\/\-]\d{2}[\/\-]\d{2}$/;
+    return regex.test(str);
+  }, 'Formato de fecha inválido. Use YYYY/MM/DD o YYYY-MM-DD').transform((str) => {
+    const [year, month, day] = str.split(/[\/\-]/);
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }),
+  fechaFinal: z.string().refine((str) => {
+    // Validar formato YYYY/MM/DD o YYYY-MM-DD
+    const regex = /^\d{4}[\/\-]\d{2}[\/\-]\d{2}$/;
+    return regex.test(str);
+  }, 'Formato de fecha inválido. Use YYYY/MM/DD o YYYY-MM-DD').transform((str) => {
+    const [year, month, day] = str.split(/[\/\-]/);
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
+  }),
   activo: z.boolean().default(true),
-  fechaInicio: z.string().optional(),
-  fechaFin: z.string().optional(),
 });
 
 export type CreateDescuentoInput = z.infer<typeof CreateDescuentoSchema>;
